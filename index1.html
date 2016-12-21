@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="http://d3js.org/d3.v3.min.js"></script>
+  <script src="http://dimplejs.org/dist/dimple.v2.0.0.min.js"></script>
+  <link rel='stylesheet' type='text/css' href='css/style.css'>
+
+    <script type="text/javascript">
+      function draw(data) {
+      
+      /*
+        Descriptions
+      */
+
+          "use strict";
+          var margin=50;
+          var width=1400-margin;
+          var height=600-margin;
+
+          var svg = d3.select("body")
+            .append("svg")
+              .attr("width", width + margin)
+              .attr("height", height + margin)
+            .append('g')
+                .attr('class','chart');
+
+      /*
+        Bar Chart construction
+      */
+
+          var myChart = new dimple.chart(svg, data);
+
+          var x = myChart.addCategoryAxis("x", "Passenger Class and Gender"); 
+          x.addOrderRule(["1st Class-Female", "1st Class-Male", "2nd Class-Female", "2nd Class-Male", "3rd Class-Female", "3rd Class-Male"]);
+
+          var y = myChart.addMeasureAxis("y", "Number of Passenger");
+
+          var s = myChart.addSeries(["Survived"], dimple.plot.bar);
+          s.addOrderRule("Survived");
+
+          myChart.addLegend(150, 10, 280, 20, "left");
+          myChart.draw();
+
+        };
+      </script>
+  </head>
+<body>
+  <script type="text/javascript">
+  d3.csv("data/titanic_data.csv", draw);
+  </script>
+</body>
+</html>
+

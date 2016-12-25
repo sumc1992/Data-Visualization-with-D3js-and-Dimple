@@ -7,71 +7,182 @@
   <link rel='stylesheet' type='text/css' href='css/style.css'>
 
     <script type="text/javascript">
-      function draw(data) {
+    function draw(data) {
       
       /*
-        Descriptions
+        D3.js setup code
       */
 
           "use strict";
-          var margin=50;
-          var width=1400-margin;
-          var height=600-margin;
+          var margin = 50,
+              width = 800 - margin,
+              height = 500 - margin;
 
-          d3.select('body')
-            .append('h1')
-            .text("First class female passengers were most likely to survive");
+          // header
+          d3.select("body")
+            .append("h1")
+            .text("Survival on the Titanic");
 
-          d3.select('body')
-            .append('h2')
-            .text("Luxury class passengers have much higher survival rate than others");
+          d3.select("body")
+            .append("h2")
+            .text("First class female passengers were most likely to survive")
+
+          d3.select("body")
+            .append("h3")
+            .text("All Passengers");  
+          //debugger;
 
           var svg = d3.select("body")
-            .append("svg")
+              .append("svg")
               .attr("width", width + margin)
               .attr("height", height + margin)
-            .append('g')
-                .attr('class','chart');
+              .append('g')
+              .attr('class','chart');
+
+          var button_labels = ['All Passengers'];
+          var button_labels2 = ['Absolute Value','Percentage'];
 
       /*
-        Bar Chart construction
-      */
+        Dimple.js Chart construction code
+      */   
 
-          var myChart = new dimple.chart(svg, data);
+          // update chart when button 1 are clicked
+          function update_which_group(wg,ct) {
+              create_chart(wg,ct)
+              return wg
+          };
 
-          var x = myChart.addCategoryAxis("x", "Passenger Class and Gender"); 
-          x.addOrderRule(["1st Class-Female", "1st Class-Male", "2nd Class-Female", "2nd Class-Male", "3rd Class-Female", "3rd Class-Male"]);
+          // update chart when button 2 are clicked
+          function update_chart_type(ct,wg) {
+                create_chart(wg,ct)
+                return ct
+          };
 
-          var y = myChart.addMeasureAxis("y", "Number of Passenger");
+          // update chart which category of data to show
+          function create_chart(which_group,plot_type){
+                var chart1 = svg.selectAll('*').remove(); 
 
-          var s = myChart.addSeries(["Survived"], dimple.plot.bar);
-          s.addOrderRule("Survived");
+                // filter the data base on different categories
+                if (which_group==="All Passengers"){
+                  d3.select("h3")
+                    .text("All Passengers"); // update the titles
+                  var data2 = data;
+                }
 
-          myChart.assignColor("Survived", "#44aabb");
-          myChart.assignColor("Death", "#996644");
-          myChart.addLegend(150, 10, 280, 20, "left");
-          myChart.draw();
+                if (which_group==="Men"){
+                  d3.select("h3")
+                    .text("Men");
+                  var data2 = dimple.filterData(data, "Type", 'Men');
+                }
 
-          d3.select('body')
-          	.append('h1')
-          	.text('plot2')
+                if (which_group==="Women"){
+                  d3.select("h3")
+                    .text("Women");
+                  var data2 = dimple.filterData(data, "Type", 'Women'); 
+                }
 
-          d3.select('body')
-          	.append('h2')
-          	.text('some info')
+                chart1 = update_chart("Class",plot_type,data2);
+                chart1.assignColor('Perished', "#000066", "black", 0.7);         
+                chart1.draw();  
+          }
 
-          var svg = d3.select("body")
-            .append("svg")
-              .attr("width", width + margin)
-              .attr("height", height + margin)
-            .append('g')
-                .attr('class','chart');
+          // update chart type absoulte value or pecentage
+          function update_chart(x_var,s_var,data2) {
+                var myChart1 = new dimple.chart(svg, data2);
+                var x = myChart1.addCategoryAxis("x", x_var); 
+                x.addOrderRule(["1st Class","2nd Class","3rd Class"])    
+                myChart1.addLegend(200, 10, 380, 20, "right");
 
-          var myChart2 = new dimple.chart(svg, data);
+                // add y axile as absolution value         
+                if (s_var === 'Absolute Value') {
+                  myChart1.addMeasureAxis("y", "Count");
+                  var mySeries = myChart1.addSeries("Survived", dimple.plot.bar);
+                  mySeries.addOrderRule(["Perished","Survived"])
+                }
+                // add y axile as percentage 
+                if (s_var === 'Percentage') {
+                  myChart1.addPctAxis("y", "Count");
+                  var mySeries = myChart1.addSeries("Survived", dimple.plot.bar);  
+                  mySeries.addOrderRule(["Perished","Survived"])              
+                }              
+                return myChart1
+          }
 
-          var x = myChart2.addCategoryAxis()
-        };
-      </script>
+
+          var data2 =data;
+          var chart_type = 'Absolute Value';
+          var which_group = 'All Passengers';
+          var myChart = new dimple.chart(svg, data2);
+
+          d3.select("h3")
+            .text("All Passengers");
+
+          // create inicial chart
+          create_chart('All Passengers','Absolute Value')
+
+          //create buttons 1
+          var buttons = d3.select("body")
+                           .append("div")
+                           .attr("class", "type_buttons")
+                           .selectAll("div")
+                           .data(button_labels)
+                           .enter()
+                           .append("div")
+                           .text(function(d) {
+                           return d;
+                          });
+
+          buttons.on("click", function(d) {
+                                d3.select(".type_buttons")
+                                  .selectAll("div")
+                                  .transition()
+                                  .duration(500)
+                                  .style("color", "black")
+                                  .style("background", "rgb(251, 201, 127)");
+
+                                d3.select(this)
+                                  .transition()
+                                  .duration(500)
+                                  .style("background", "lightBlue")
+                                  .style("color", "white");
+                                 //debugger;
+                                  which_group = update_which_group(d,chart_type);
+                                  
+                                  
+                              });
+
+        //create buttons 2 
+         var buttons2 = d3.select("body")
+                        .append("div")
+                        .attr("class", "type_buttons2")
+                        .selectAll("div")
+                        .data(button_labels2)
+                        .enter()
+                        .append("div")
+                        .text(function(d) {
+                            return d;
+                        });
+
+          buttons2.on("click", function(d) {
+                              d3.select(".type_buttons2")
+                                .selectAll("div")
+                                .transition()
+                                .duration(500)
+                                .style("color", "black")
+                                .style("background", "rgb(255, 182, 193)");
+
+                              d3.select(this)
+                                .transition()
+                                .duration(500)
+                                .style("background", "lightBlue")
+                                .style("color", "white");
+                               // update chart when button are clicked
+                                chart_type = update_chart_type(d,which_group);
+                                //debugger;
+                                
+                              });
+  }  
+    </script>
   </head>
 <body>
   <script type="text/javascript">
